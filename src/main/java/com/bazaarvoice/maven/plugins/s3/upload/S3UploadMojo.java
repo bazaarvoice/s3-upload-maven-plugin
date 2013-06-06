@@ -43,6 +43,10 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.destinationFile", required = true)
   private String destinationFile;
 
+  /** Force override of endpoint for S3 regions such as EU. */
+  @Parameter(property = "s3-upload.endpoint")
+  private String endpoint;
+
   @Override
   public void execute() throws MojoExecutionException
   {
@@ -52,6 +56,10 @@ public class S3UploadMojo extends AbstractMojo
     }
 
     AmazonS3 s3 = getS3Client(accessKey, secretKey);
+    if (endpoint != null) {
+      s3.setEndpoint(endpoint);
+    }
+
     if (!s3.doesBucketExist(bucketName)) {
       throw new MojoExecutionException("Bucket doesn't exist: " + bucketName);
     }
