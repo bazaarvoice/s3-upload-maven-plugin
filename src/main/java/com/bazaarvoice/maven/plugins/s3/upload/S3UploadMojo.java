@@ -27,10 +27,6 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.secretKey")
   private String secretKey;
 
-  /** Execute all steps up except the upload to the S3.  This can be set to true to perform a "dryRun" execution. */
-  @Parameter(property = "s3repo.doNotUpload", defaultValue = "false")
-  private boolean doNotUpload;
-
   /** The file to upload. */
   @Parameter(property = "s3-upload.sourceFile", required = true)
   private String sourceFile;
