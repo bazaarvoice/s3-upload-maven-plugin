@@ -1,5 +1,6 @@
 package com.bazaarvoice.maven.plugins.s3.upload;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -12,14 +13,18 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.ObjectMetadataProvider;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.transfer.Transfer;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.Upload;
+import com.amazonaws.services.s3.transfer.model.UploadResult;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.util.Date;
 
 @Mojo(name = "s3-upload")
 public class S3UploadMojo extends AbstractMojo
@@ -59,6 +64,14 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
+  /** If uploading a single file, generate a pre-signed URL to access the uploaded file, and print this to the console. */
+  @Parameter(property = "s3-upload.generatePreSignedUrl", defaultValue = "false")
+  private boolean generatePreSignedUrl;
+
+  /** Milliseconds till the generate pre-signed URL expires. */
+  @Parameter(property = "s3-upload.generatePreSignedUrlExpiryMs", defaultValue = "3600000")
+  private long generatePreSignedUrlExpiryMs;
+
   @Override
   public void execute() throws MojoExecutionException
   {
@@ -82,13 +95,18 @@ public class S3UploadMojo extends AbstractMojo
       return;
     }
 
-    boolean success = upload(s3, source);
-    if (!success) {
+    Transfer uploaded = upload(s3, source);
+    if (uploaded == null) {
       throw new MojoExecutionException("Unable to upload file to S3.");
     }
 
     getLog().info(String.format("File %s uploaded to s3://%s/%s",
             source, bucketName, destination));
+
+      if (generatePreSignedUrl && uploaded instanceof Upload) {
+          printPreSignedUrl(s3, (Upload) uploaded);
+
+      }
   }
 
   private static AmazonS3 getS3Client(String accessKey, String secretKey)
@@ -104,7 +122,7 @@ public class S3UploadMojo extends AbstractMojo
     return new AmazonS3Client(provider);
   }
 
-  private boolean upload(AmazonS3 s3, File sourceFile) throws MojoExecutionException
+  private Transfer upload(AmazonS3 s3, File sourceFile) throws MojoExecutionException
   {
     TransferManager mgr = new TransferManager(s3);
 
@@ -136,5 +154,19 @@ public class S3UploadMojo extends AbstractMojo
     }
 
     return transfer.getState() == Transfer.TransferState.Completed;
+  }
+
+
+  private void printPreSignedUrl(AmazonS3 s3, Upload uploaded)
+  {
+    try {
+      UploadResult result = uploaded.waitForUploadResult();
+      GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(result.getBucketName(), result.getKey(), HttpMethod.GET);
+      Date expiration = new Date(System.currentTimeMillis() + generatePreSignedUrlExpiryMs);
+      request.setExpiration(expiration);
+      getLog().info("Pre-signed URL to download file (expires at " + expiration + "): " + s3.generatePresignedUrl(request));
+    } catch (InterruptedException e) {
+        getLog().error("Could not print pre-signed URL for " + uploaded, e);
+    }
   }
 }
