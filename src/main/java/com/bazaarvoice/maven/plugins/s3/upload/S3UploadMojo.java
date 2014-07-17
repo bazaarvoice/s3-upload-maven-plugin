@@ -116,7 +116,7 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
       long savings = 0;
       if (from==null || to==null)
       {
-          throw new MojoExecutionException("From and To both must exist (from="+from+", to="+to+")");
+          throw new MojoExecutionException("From and To both must be non-null (from="+from+", to="+to+")");
       }
 
       if (from.isFile())
@@ -136,7 +136,7 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
 
               out.finish();
               out.close();
-              savings = to.length()-from.length();
+              savings = from.length()-to.length();
           }
           catch (IOException ioe)
           {
