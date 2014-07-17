@@ -62,7 +62,7 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
-  /** In the case of a directory upload, recursively upload the contents. */
+  /** If true, gzip compresses all the files and sets the Content-Encoding metadata to 'gzip'. */
   @Parameter(property = "s3-upload.compress", defaultValue = "false")
   private boolean compress;
 
