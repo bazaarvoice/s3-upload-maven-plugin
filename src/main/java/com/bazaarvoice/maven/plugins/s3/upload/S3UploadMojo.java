@@ -187,9 +187,9 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
       throw new MojoExecutionException("File is neither a regular file nor a directory " + sourceFile);
     }
     try {
-      getLog().info(String.format("Transferring %s bytes...",  transfer.getProgress().getTotalBytesToTransfer()));
+      getLog().info(String.format("About to transfer %s bytes...",  transfer.getProgress().getTotalBytesToTransfer()));
       transfer.waitForCompletion();
-        getLog().info(String.format("Transferring %s bytes...",  transfer.getProgress().getBytesTransfered()));
+        getLog().info(String.format("Completed transferring %s bytes...",  transfer.getProgress().getBytesTransferred()));
     } catch (InterruptedException e) {
       return false;
     }
