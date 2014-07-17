@@ -7,6 +7,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.ObjectMetadataProvider;
 import com.amazonaws.services.s3.transfer.Transfer;
@@ -20,6 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
@@ -177,25 +179,24 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
 
     Transfer transfer;
     if (sourceFile.isFile()) {
-      ObjectMetadata omd = new ObjectMetadata();
-      provideObjectMetadata(sourceFile, omd);
-        try {
-            transfer = mgr.upload(bucketName, destination, new FileInputStream(sourceFile), omd);
-        } catch (IOException ioe)
-        {
-            throw new MojoExecutionException("Couldn't open stream to file", ioe);
-        }
+      transfer = mgr.uploadFileList(bucketName, destination, sourceFile.getParentFile(), Arrays.asList(sourceFile), this);
     } else if (sourceFile.isDirectory()) {
-      transfer = mgr.uploadDirectory(bucketName, destination, sourceFile, recursive, this);
+            transfer = mgr.uploadDirectory(bucketName, destination, sourceFile, recursive, this);
+
     } else {
       throw new MojoExecutionException("File is neither a regular file nor a directory " + sourceFile);
     }
     try {
-      getLog().debug("Transferring " + transfer.getProgress().getTotalBytesToTransfer() + " bytes...");
+      getLog().info(String.format("Transferring %s bytes...",  transfer.getProgress().getTotalBytesToTransfer()));
       transfer.waitForCompletion();
-      getLog().info("Transferred " + transfer.getProgress().getBytesTransfered() + " bytes.");
+        getLog().info(String.format("Transferring %s bytes...",  transfer.getProgress().getBytesTransfered()));
     } catch (InterruptedException e) {
       return false;
+    }
+      catch (AmazonS3Exception as3e)
+    {
+        getLog().info(String.format("Error from S3 : %s"),as3e);
+        return false;
     }
 
     return true;
@@ -203,6 +204,7 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
 
   @Override
   public void provideObjectMetadata(File file, ObjectMetadata objectMetadata) {
+      getLog().debug(String.format("Creating metadata for %s (size=%s)",file, file.length()));
       if (compress) {
           objectMetadata.setContentEncoding("gzip");
       }
