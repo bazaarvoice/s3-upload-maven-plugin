@@ -15,7 +15,9 @@ Configuration parameters
 |secretKey|S3 secret key | *no* | if unspecified, uses the Default Provider, falling back to env variables |
 |doNotUpload|Dry run| *no* | false |
 |compress|If true, gzip compresses all files and sets the Content-Encoding metadata| *no* | false |
+|compressExcludes|A list of regex patterns to exclude from compression| *no*| |
 |endpoint|Use a different s3 endpoint| *no* | s3.amazonaws.com |
+
 
 Example: Upload a file
 ----------------------
@@ -58,6 +60,10 @@ Example: Recursively upload a folder
         <source>dir</source>
         <destination>remote-dir</destination>
         <recursive>true</recursive>
+        <compress>true</compress>
+        <compressExcludes>
+            <value>.*\.mov</value>
+        </compressExcludes>
       </configuration>
     </plugin>
   </plugins>

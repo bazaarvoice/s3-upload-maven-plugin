@@ -17,12 +17,11 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 @Mojo(name = "s3-upload")
@@ -67,6 +66,10 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
   /** If true, gzip compresses all the files and sets the Content-Encoding metadata to 'gzip'. */
   @Parameter(property = "s3-upload.compress", defaultValue = "false")
   private boolean compress;
+
+  /** If compression enabled, this is a list of regular expressions which, if matched, do not get compressed */
+  @Parameter(property = "s3-upload.compressExcludes")
+  private List<String> compressExcludes;
 
 
     @Override
@@ -121,12 +124,20 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
           throw new MojoExecutionException("From and To both must be non-null (from="+from+", to="+to+")");
       }
 
+      // We have to copy the file since we will be reading from a different directory
       if (from.isFile())
       {
           try {
               byte[] buffer = new byte[1024];
-              GZIPOutputStream out =
-                      new GZIPOutputStream(new FileOutputStream(to));
+              OutputStream out = null;
+              if (fileExcludedFromCompression(from))
+              {
+                  out = new FileOutputStream(to);
+              }
+              else
+              {
+                  out = new GZIPOutputStream(new FileOutputStream(to));
+              }
               FileInputStream in =
                       new FileInputStream(from);
               int len;
@@ -135,14 +146,21 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
               }
 
               in.close();
+              /*
+              if (GZIPOutputStream.class.isAssignableFrom(out.getClass()))
+              {
+                  ((GZIPOutputStream)out).finish();
+              }*/
 
-              out.finish();
+              /*
+              if (isExcluded) {
+                  ((out.finish();
+              }
+              */
               out.close();
-              savings = from.length()-to.length();
-          }
-          catch (IOException ioe)
-          {
-              throw new MojoExecutionException("Error attempting to zip file",ioe);
+              savings = from.length() - to.length();
+          } catch (IOException ioe) {
+              throw new MojoExecutionException("Error attempting to zip file", ioe);
           }
       }
       else // directory
@@ -205,9 +223,36 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
   @Override
   public void provideObjectMetadata(File file, ObjectMetadata objectMetadata) {
       getLog().debug(String.format("Creating metadata for %s (size=%s)",file, file.length()));
-      if (compress) {
+      if (compress && !fileExcludedFromCompression(file)) {
           objectMetadata.setContentEncoding("gzip");
       }
   }
+
+    /**
+     * Checks if file matches any of the exclusion patterns.
+     * NOTE: Yes, I'm well aware it does a bunch of recalculation of the pattern objects
+     * and linear searches multiple times (and doesn't shortcut the loop), but it is simple
+     * and this runs per-build.  Not really trying to save the 14 nanoseconds involved.
+     * @param f File to check
+     * @return boolean true if the file should not be compressed
+     */
+    public boolean fileExcludedFromCompression(File f)
+    {
+        boolean rval = false;
+        if (f!=null && compressExcludes!=null)
+        {
+            for (String s:compressExcludes)
+            {
+                Pattern pattern = Pattern.compile(s);
+                if (pattern.matcher(f.getAbsolutePath()).matches())
+                {
+                    getLog().debug(String.format("File %s matches pattern %s and will be excluded from compression", f, s));
+                    rval = true;
+                }
+            }
+        }
+        return rval;
+    }
+
 
 }
