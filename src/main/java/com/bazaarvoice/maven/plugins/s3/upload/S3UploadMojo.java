@@ -67,9 +67,13 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
   @Parameter(property = "s3-upload.compress", defaultValue = "false")
   private boolean compress;
 
-  /** If compression enabled, this is a list of regular expressions which, if matched, do not get compressed */
-  @Parameter(property = "s3-upload.compressExcludes")
-  private List<String> compressExcludes;
+    /** If compression enabled, this is a list of regular expressions which, if matched, do not get compressed */
+    @Parameter(property = "s3-upload.compressExcludes")
+    private List<String> compressExcludes;
+
+    /** If set, this will add a Cache-Control header to all the uploaded objects */
+    @Parameter(property = "s3-upload.cacheControl")
+    private String cacheControl;
 
 
     @Override
@@ -225,6 +229,10 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
       getLog().debug(String.format("Creating metadata for %s (size=%s)",file, file.length()));
       if (compress && !fileExcludedFromCompression(file)) {
           objectMetadata.setContentEncoding("gzip");
+      }
+      if (cacheControl!=null)
+      {
+          objectMetadata.setCacheControl(cacheControl);
       }
   }
 
