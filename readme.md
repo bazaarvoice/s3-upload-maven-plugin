@@ -9,12 +9,17 @@ Configuration parameters
 |-----------|-------------|----------|---------|
 |bucketName|The name of the bucket|*yes*| |
 |source|The source file or folder (was sourceFile before 1.2)|*yes*| |
-|destination|The destination file or destination folder (was destinationFile before 1.2)| *yes*| |
+|destination|The destination file or destination folder (was destinationFile before 1.2) if unspecified uploads to the root of the bucket| *no*| |
 |recursive|If this is a directory copy, recursively copy all contents (since 1.2)| *no* | false |
 |accessKey|S3 access key | *no* | if unspecified, uses the Default Provider, falling back to env variables |
 |secretKey|S3 secret key | *no* | if unspecified, uses the Default Provider, falling back to env variables |
 |doNotUpload|Dry run| *no* | false |
+|compress|If true, gzip compresses all files and sets the Content-Encoding metadata| *no* | false |
+|cacheControl|If set, adds the value as the Cache-Control header to all uploaded items| *no* | false |
+|compressExcludes|A list of regex patterns to exclude from compression| *no*| |
 |endpoint|Use a different s3 endpoint| *no* | s3.amazonaws.com |
+|contentType|Map of extensions to forced content types| *no* | *null* |
+
 
 Example: Upload a file
 ----------------------
@@ -57,6 +62,13 @@ Example: Recursively upload a folder
         <source>dir</source>
         <destination>remote-dir</destination>
         <recursive>true</recursive>
+        <compress>true</compress>
+        <compressExcludes>
+            <value>.*\.mov</value>
+        </compressExcludes>
+        <contentType>
+            <json>application/json</json>
+        </contentType>
       </configuration>
     </plugin>
   </plugins>
