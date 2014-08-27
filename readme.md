@@ -18,6 +18,7 @@ Configuration parameters
 |cacheControl|If set, adds the value as the Cache-Control header to all uploaded items| *no* | false |
 |compressExcludes|A list of regex patterns to exclude from compression| *no*| |
 |endpoint|Use a different s3 endpoint| *no* | s3.amazonaws.com |
+|contentType|Map of extensions to forced content types| *no* | *null* |
 
 
 Example: Upload a file
@@ -65,6 +66,9 @@ Example: Recursively upload a folder
         <compressExcludes>
             <value>.*\.mov</value>
         </compressExcludes>
+        <contentType>
+            <json>application/json</json>
+        </contentType>
       </configuration>
     </plugin>
   </plugins>

@@ -20,6 +20,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
@@ -75,6 +76,9 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
     @Parameter(property = "s3-upload.cacheControl")
     private String cacheControl;
 
+    /** If set, this maps from regular expression to a content type for files matching that expression */
+    @Parameter(property = "s3-upload.contentType")
+    private Map<String,String> contentType;
 
     @Override
   public void execute() throws MojoExecutionException
@@ -233,6 +237,20 @@ public class S3UploadMojo extends AbstractMojo implements ObjectMetadataProvider
       if (cacheControl!=null)
       {
           objectMetadata.setCacheControl(cacheControl);
+      }
+      if (contentType!=null)
+      {
+          String fName = file.getAbsolutePath().toLowerCase();
+          int idx = fName.lastIndexOf('.');
+          String lookupKey = (idx==-1)?"null":fName.substring(idx+1);
+          String cType = contentType.get(lookupKey);
+          getLog().info("Testing "+lookupKey+" got "+cType+" from "+contentType);
+          if (cType!=null)
+          {
+              getLog().info(String.format("File %s matches extension %s and will receive content type %s", file, lookupKey, cType));
+              objectMetadata.setContentType(cType);
+          }
+
       }
   }
 
