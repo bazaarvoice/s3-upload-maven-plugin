@@ -28,7 +28,7 @@ Example: Upload a file
     <plugin>
       <groupId>com.bazaarvoice.maven.plugins</groupId>
       <artifactId>s3-upload-maven-plugin</artifactId>
-      <version>1.2</version>
+      <version>1.3</version>
       <configuration>
         <bucketName>my-s3-bucket</bucketName>
         <source>dir/filename.txt</source>
@@ -51,7 +51,7 @@ Example: Recursively upload a folder
     <plugin>
       <groupId>com.bazaarvoice.maven.plugins</groupId>
       <artifactId>s3-upload-maven-plugin</artifactId>
-      <version>1.0</version>
+      <version>1.3</version>
       <configuration>
         <bucketName>my-s3-bucket</bucketName>
         <source>dir</source>
