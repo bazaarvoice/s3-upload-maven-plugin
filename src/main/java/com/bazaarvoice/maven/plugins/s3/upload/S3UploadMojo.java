@@ -4,6 +4,7 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -59,6 +60,10 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
+  /** Use a credential profile for AWS Auth. */
+  @Parameter(property = "s3-upload.authProfile")
+  private String awsAuthProfile;
+
   @Override
   public void execute() throws MojoExecutionException
   {
@@ -66,7 +71,7 @@ public class S3UploadMojo extends AbstractMojo
       throw new MojoExecutionException("File/folder doesn't exist: " + source);
     }
 
-    AmazonS3 s3 = getS3Client(accessKey, secretKey);
+    AmazonS3 s3 = getS3Client(accessKey, secretKey,awsAuthProfile);
     if (endpoint != null) {
       s3.setEndpoint(endpoint);
     }
@@ -91,13 +96,15 @@ public class S3UploadMojo extends AbstractMojo
             source, bucketName, destination));
   }
 
-  private static AmazonS3 getS3Client(String accessKey, String secretKey)
+  private static AmazonS3 getS3Client(String accessKey, String secretKey, String awsAuthProfile)
   {
     AWSCredentialsProvider provider;
     if (accessKey != null && secretKey != null) {
       AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
       provider = new StaticCredentialsProvider(credentials);
-    } else {
+    } else if (awsAuthProfile !=null){
+      provider = new ProfileCredentialsProvider(awsAuthProfile);
+    }else {
       provider = new DefaultAWSCredentialsProviderChain();
     }
 
