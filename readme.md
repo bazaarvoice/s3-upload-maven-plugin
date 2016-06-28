@@ -15,7 +15,7 @@ Configuration parameters
 |secretKey|S3 secret key | *no* | if unspecified, uses the Default Provider, falling back to env variables |
 |doNotUpload|Dry run| *no* | false |
 |endpoint|Use a different s3 endpoint| *no* | s3.amazonaws.com |
-|awsAuthProfile|AWS Authentication profile to use for credentials| *no* | s3.amazonaws.com |
+|awsAuthProfile|AWS Authentication profile to use for credentials| *no* |default|
 
 Example: Upload a file
 ----------------------
