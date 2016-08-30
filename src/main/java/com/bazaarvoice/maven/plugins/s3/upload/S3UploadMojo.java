@@ -59,6 +59,9 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
+  @Parameter(property = "s3-upload.cannedACL", defaultValue = "BucketOwnerFullControl")
+  private String cannedACL;
+  
   @Override
   public void execute() throws MojoExecutionException
   {
@@ -106,12 +109,16 @@ public class S3UploadMojo extends AbstractMojo
 
   private boolean upload(AmazonS3 s3, File sourceFile) throws MojoExecutionException
   {
+	  
+	CannedAccessControlList acl = CannedAccessControlList.valueOf(this.cannedACL);
+	
+	
     TransferManager mgr = new TransferManager(s3);
 
     Transfer transfer;
     if (sourceFile.isFile()) {
       transfer = mgr.upload(new PutObjectRequest(bucketName, destination, sourceFile)
-              .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl));
+              .withCannedAcl(acl));
     } else if (sourceFile.isDirectory()) {
       transfer = mgr.uploadDirectory(bucketName, destination, sourceFile, recursive,
               new ObjectMetadataProvider() {
