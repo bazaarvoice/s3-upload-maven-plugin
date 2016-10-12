@@ -2,23 +2,43 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.bazaarvoice.commons</groupId>
-        <artifactId>bv-opensource-super-pom</artifactId>
-        <version>1.4</version>
-    </parent>
 
-    <groupId>com.bazaarvoice.maven.plugins</groupId>
+    <groupId>io.fastup</groupId>
     <artifactId>s3-upload-maven-plugin</artifactId>
-    <version>1.5-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>S3 upload maven plugin</name>
+    <distributionManagement>
+        <snapshotRepository>
+            <name>ossrh</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <id>ossrh</id>
+        </snapshotRepository>
+    </distributionManagement>
+    <developers>
+        <developer>
+            <name>Sachin Dole</name>
+            <email>sdole@genvega.com</email>
+            <organization>Genvega, Inc.</organization>
+            <organizationUrl>http://www.fastup.io</organizationUrl>
+            <url>http://www.fastup.io</url>
+            <id>sdole</id>
+            <timezone>-6</timezone>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <scm>
-        <url>https://github.com/bazaarvoice/s3-upload-maven-plugin</url>
-        <connection>scm:git:git@github.com:bazaarvoice/s3-upload-maven-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:bazaarvoice/s3-upload-maven-plugin.git</developerConnection>
+        <url>https://github.com/sdole/s3-upload-maven-plugin</url>
+        <connection>scm:git:git@github.com:sdole/s3-upload-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:sdole/s3-upload-maven-plugin.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -79,11 +99,52 @@
                 <version>1.6.7</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>sonatype-nexus-staging</serverId>
+                    <serverId>ossrh</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
