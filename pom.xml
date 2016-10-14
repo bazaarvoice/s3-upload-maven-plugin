@@ -5,7 +5,7 @@
 
     <groupId>io.fastup</groupId>
     <artifactId>s3-upload-maven-plugin</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
     <description>To upload files to S3.</description>
     <url>http://www.fastup.io</url>
