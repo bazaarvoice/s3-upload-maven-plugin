@@ -20,6 +20,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 @Mojo(name = "s3-upload")
 public class S3UploadMojo extends AbstractMojo
@@ -58,6 +60,10 @@ public class S3UploadMojo extends AbstractMojo
   /** In the case of a directory upload, recursively upload the contents. */
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
+
+  /** Add Cache Control (if specified). */
+  @Parameter(property = "s3-upload.cacheControl")
+  private String cacheControl;
 
   @Override
   public void execute() throws MojoExecutionException
@@ -110,8 +116,18 @@ public class S3UploadMojo extends AbstractMojo
 
     Transfer transfer;
     if (sourceFile.isFile()) {
-      transfer = mgr.upload(new PutObjectRequest(bucketName, destination, sourceFile)
-              .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl));
+      ObjectMetadata metadata = new ObjectMetadata();
+      metadata.setHeader(Headers.S3_CANNED_ACL, CannedAccessControlList.BucketOwnerFullControl);
+
+      if(cacheControl != null) {
+        metadata.setCacheControl(cacheControl);
+      }
+
+      try {
+        transfer = mgr.upload(new PutObjectRequest(bucketName, destination, new FileInputStream(sourceFile), metadata));
+      } catch (FileNotFoundException ignore) {
+        throw new MojoExecutionException("File doesn't exist: " + source);
+      }
     } else if (sourceFile.isDirectory()) {
       transfer = mgr.uploadDirectory(bucketName, destination, sourceFile, recursive,
               new ObjectMetadataProvider() {
@@ -122,6 +138,9 @@ public class S3UploadMojo extends AbstractMojo
                    * for directory uploads otherwise.
                    */
                   objectMetadata.setHeader(Headers.S3_CANNED_ACL, CannedAccessControlList.BucketOwnerFullControl);
+                  if (cacheControl != null) {
+                    objectMetadata.setCacheControl(cacheControl);
+                  }
                 }
               });
     } else {
