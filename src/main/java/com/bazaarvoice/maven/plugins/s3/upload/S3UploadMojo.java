@@ -1,9 +1,7 @@
 package com.bazaarvoice.maven.plugins.s3.upload;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.*;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -59,6 +57,22 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
+  /** Proxy host **/
+  @Parameter(property = "s3-upload.proxyHost")
+  private String proxyHost;
+
+  /** Proxy port **/
+  @Parameter(property = "s3-upload.proxyPort")
+  private int proxyPort;
+
+  /** Proxy username **/
+  @Parameter(property = "s3-upload.proxyUsername")
+  private String proxyUsername;
+
+  /** Proxy password **/
+  @Parameter(property = "s3-upload.proxyPassword")
+  private String proxyPassword;
+
   @Override
   public void execute() throws MojoExecutionException
   {
@@ -91,7 +105,7 @@ public class S3UploadMojo extends AbstractMojo
             source, bucketName, destination));
   }
 
-  private static AmazonS3 getS3Client(String accessKey, String secretKey)
+  private AmazonS3 getS3Client(String accessKey, String secretKey)
   {
     AWSCredentialsProvider provider;
     if (accessKey != null && secretKey != null) {
@@ -100,7 +114,16 @@ public class S3UploadMojo extends AbstractMojo
     } else {
       provider = new DefaultAWSCredentialsProviderChain();
     }
-
+    ClientConfiguration clientConfiguration;
+    if (proxyHost != null)
+    {
+      clientConfiguration = new ClientConfiguration()
+              .withProxyHost(proxyHost)
+              .withProxyPort(proxyPort)
+              .withProxyUsername(proxyUsername)
+              .withProxyPassword(proxyPassword);
+      return new AmazonS3Client(provider, clientConfiguration);
+    }
     return new AmazonS3Client(provider);
   }
 
