@@ -16,7 +16,7 @@ Configuration parameters
 |doNotUpload|Dry run| *no* | false |
 |endpoint|Use a different s3 endpoint| *no* | s3.amazonaws.com |
 |proxyHost|Proxy host for S3 connection| *no* | |
-|proxyPort|Proxy host for S3 connection| *no* | |
+|proxyPort|Proxy port| *no* | |
 |proxyUsername|Proxy username | *no* | |
 |proxyPassword|Proxy password | *no* | |
 
