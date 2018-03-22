@@ -59,6 +59,14 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
+  /** Set PublicRead on file ACL. */
+  @Parameter(property = "s3-upload.public-read", defaultValue = "false")
+  private boolean publicReadFlag;
+
+  /** Set PublicReadWrite on file ACL. */
+  @Parameter(property = "s3-upload.public-write", defaultValue = "false")
+  private boolean publicWriteFlag;
+
   @Override
   public void execute() throws MojoExecutionException
   {
@@ -110,8 +118,15 @@ public class S3UploadMojo extends AbstractMojo
 
     Transfer transfer;
     if (sourceFile.isFile()) {
-      transfer = mgr.upload(new PutObjectRequest(bucketName, destination, sourceFile)
-              .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl));
+      PutObjectRequest request = new PutObjectRequest(bucketName, destination, sourceFile)
+              .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
+      if (publicReadFlag) {
+        request = request.withCannedAcl(CannedAccessControlList.PublicRead);
+      }
+      if (publicWriteFlag) {
+        request = request.withCannedAcl(CannedAccessControlList.PublicReadWrite);
+      }
+      transfer = mgr.upload(request);
     } else if (sourceFile.isDirectory()) {
       transfer = mgr.uploadDirectory(bucketName, destination, sourceFile, recursive,
               new ObjectMetadataProvider() {
@@ -122,6 +137,12 @@ public class S3UploadMojo extends AbstractMojo
                    * for directory uploads otherwise.
                    */
                   objectMetadata.setHeader(Headers.S3_CANNED_ACL, CannedAccessControlList.BucketOwnerFullControl);
+                  if (publicReadFlag) {
+                    objectMetadata.setHeader(Headers.S3_CANNED_ACL, CannedAccessControlList.PublicRead);
+                  }
+                  if (publicWriteFlag) {
+                    objectMetadata.setHeader(Headers.S3_CANNED_ACL, CannedAccessControlList.PublicReadWrite);
+                  }
                 }
               });
     } else {
