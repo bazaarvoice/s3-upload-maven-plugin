@@ -59,6 +59,10 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
+  /** Make file everyone can read. */
+  @Parameter(property = "s3-upload.makePublic", defaultValue = "false")
+  private boolean makePublic;
+
   @Override
   public void execute() throws MojoExecutionException
   {
@@ -108,10 +112,12 @@ public class S3UploadMojo extends AbstractMojo
   {
     TransferManager mgr = new TransferManager(s3);
 
+    final CannedAccessControlList cannedAccessControlList = makePublic ? CannedAccessControlList.PublicRead : CannedAccessControlList.BucketOwnerFullControl;
+
     Transfer transfer;
     if (sourceFile.isFile()) {
       transfer = mgr.upload(new PutObjectRequest(bucketName, destination, sourceFile)
-              .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl));
+              .withCannedAcl(cannedAccessControlList));
     } else if (sourceFile.isDirectory()) {
       transfer = mgr.uploadDirectory(bucketName, destination, sourceFile, recursive,
               new ObjectMetadataProvider() {
@@ -121,7 +127,7 @@ public class S3UploadMojo extends AbstractMojo
                    * This is a terrible hack, but the SDK as of 1.10.69 does not allow setting ACLs
                    * for directory uploads otherwise.
                    */
-                  objectMetadata.setHeader(Headers.S3_CANNED_ACL, CannedAccessControlList.BucketOwnerFullControl);
+                  objectMetadata.setHeader(Headers.S3_CANNED_ACL, cannedAccessControlList);
                 }
               });
     } else {
