@@ -59,9 +59,17 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
+  /** Skip execution. */
+  @Parameter(property = "s3-upload.skip", defaultValue = "false")
+  private boolean skip;
+
   @Override
   public void execute() throws MojoExecutionException
   {
+    if (skip) {
+      getLog().info("Skipping S3 upload");
+      return;
+    }
     if (!source.exists()) {
       throw new MojoExecutionException("File/folder doesn't exist: " + source);
     }
