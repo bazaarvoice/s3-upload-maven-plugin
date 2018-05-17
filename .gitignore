@@ -12,3 +12,4 @@ test-output
 *.war
 *.ear
 
+setting.xml
