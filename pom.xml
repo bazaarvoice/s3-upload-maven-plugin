@@ -3,7 +3,7 @@
 
   <groupId>com.bazaarvoice.maven.plugins</groupId>
   <artifactId>s3-upload-maven-plugin</artifactId>
-  <version>1.4-multiple-key</version>
+  <version>1.4-multiple-key-3</version>
   <packaging>maven-plugin</packaging>
 
   <name>S3 upload maven plugin</name>

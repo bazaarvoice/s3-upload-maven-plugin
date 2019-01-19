@@ -26,11 +26,11 @@ public class S3UploadMojo extends AbstractMojo
 {
   /** Access key for S3. */
   @Parameter(property = "s3-upload.accessKey")
-  private String accessKeys;
+  private String accessKey;
 
   /** Secret key for S3. */
   @Parameter(property = "s3-upload.secretKey")
-  private String secretKeys;
+  private String secretKey;
 
   /**
    *  Execute all steps up except the upload to the S3.
@@ -44,8 +44,8 @@ public class S3UploadMojo extends AbstractMojo
   private File source;
 
   /** The bucket to upload into. */
-  @Parameter(property = "s3-upload.bucketName", required = true)
-  private String bucketNames;
+  @Parameter(property = "s3-upload.bucketName")
+  private String bucketName;
 
   /** The file/folder (in the bucket) to create. */
   @Parameter(property = "s3-upload.destination", required = true)
@@ -70,9 +70,9 @@ public class S3UploadMojo extends AbstractMojo
       throw new MojoExecutionException("File/folder doesn't exist: " + source);
     }
 
-    String[] accessKeyArray = accessKeys.split(",");
-    String[] secretKeyArray = secretKeys.split(",");
-    String[] bucketNameArray = bucketNames.split(",");
+    String[] accessKeyArray = accessKey.split(",");
+    String[] secretKeyArray = secretKey.split(",");
+    String[] bucketNameArray = bucketName.split(",");
 
     for(int i=0 ; i<accessKeyArray.length ; i++){
       String accessKey = accessKeyArray[i];
