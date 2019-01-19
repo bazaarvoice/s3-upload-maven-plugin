@@ -26,11 +26,11 @@ public class S3UploadMojo extends AbstractMojo
 {
   /** Access key for S3. */
   @Parameter(property = "s3-upload.accessKey")
-  private String accessKey;
+  private String accessKeys;
 
   /** Secret key for S3. */
   @Parameter(property = "s3-upload.secretKey")
-  private String secretKey;
+  private String secretKeys;
 
   /**
    *  Execute all steps up except the upload to the S3.
@@ -45,7 +45,7 @@ public class S3UploadMojo extends AbstractMojo
 
   /** The bucket to upload into. */
   @Parameter(property = "s3-upload.bucketName", required = true)
-  private String bucketName;
+  private String bucketNames;
 
   /** The file/folder (in the bucket) to create. */
   @Parameter(property = "s3-upload.destination", required = true)
@@ -70,6 +70,21 @@ public class S3UploadMojo extends AbstractMojo
       throw new MojoExecutionException("File/folder doesn't exist: " + source);
     }
 
+    String[] accessKeyArray = accessKeys.split(",");
+    String[] secretKeyArray = secretKeys.split(",");
+    String[] bucketNameArray = bucketNames.split(",");
+
+    for(int i=0 ; i<accessKeyArray.length ; i++){
+      String accessKey = accessKeyArray[i];
+      String secretKey = secretKeyArray[i];
+      String bucketName = bucketNameArray[i];
+      upload(accessKey, secretKey, bucketName);
+    }
+
+  }
+
+  private void upload(String accessKey, String secretKey, String bucketName) throws MojoExecutionException
+  {
     AmazonS3 s3 = getS3Client(accessKey, secretKey);
     if (endpoint != null) {
       s3.setEndpoint(endpoint);
@@ -86,7 +101,7 @@ public class S3UploadMojo extends AbstractMojo
       return;
     }
 
-    boolean success = upload(s3, source);
+    boolean success = upload(s3, source, bucketName);
     if (!success) {
       throw new MojoExecutionException("Unable to upload file to S3.");
     }
@@ -108,7 +123,7 @@ public class S3UploadMojo extends AbstractMojo
     return new AmazonS3Client(provider);
   }
 
-  private boolean upload(AmazonS3 s3, File sourceFile) throws MojoExecutionException
+  private boolean upload(AmazonS3 s3, File sourceFile, String bucketName) throws MojoExecutionException
   {
     TransferManager mgr = new TransferManager(s3);
 
