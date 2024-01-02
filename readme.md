@@ -16,6 +16,10 @@ Configuration parameters
 |secretKey|S3 secret key | *no* | if unspecified, uses the ProfileCredentialsProvider Provider, falling back to env variables |
 |doNotUpload|Dry run| *no* | false |
 |endpoint|Use a different s3 endpoint| *no* | s3.amazonaws.com |
+|proxyHost|Proxy host for S3 connection| *no* | |
+|proxyPort|Proxy port| *no* | |
+|proxyUsername|Proxy username | *no* | |
+|proxyPassword|Proxy password | *no* | |
 
 Example: Upload a file
 ----------------------
