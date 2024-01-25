@@ -9,7 +9,7 @@
 
   <groupId>com.bazaarvoice.maven.plugins</groupId>
   <artifactId>s3-upload-maven-plugin</artifactId>
-  <version>2.0.2</version>
+  <version>2.0.3-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>S3 upload maven plugin</name>
@@ -18,7 +18,7 @@
     <url>https://github.com/bazaarvoice/s3-upload-maven-plugin</url>
     <connection>scm:git:git@github.com:bazaarvoice/s3-upload-maven-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:bazaarvoice/s3-upload-maven-plugin.git</developerConnection>
-    <tag>s3-upload-maven-plugin-2.0.2</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
