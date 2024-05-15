@@ -14,6 +14,7 @@ Configuration parameters
 |profileName|AWS profile | *no* | if unspecified, uses the ProfileCredentialsProvider Provider, falling back to env variables |
 |accessKey|S3 access key | *no* | if unspecified, uses the ProfileCredentialsProvider Provider, falling back to env variables |
 |secretKey|S3 secret key | *no* | if unspecified, uses the ProfileCredentialsProvider Provider, falling back to env variables |
+|sessionToken|Session token for AWS security token service (STS) credentials. Used with accessKey and secretKey | *no* | if unspecified, uses the ProfileCredentialsProvider Provider, falling back to env variables |
 |doNotUpload|Dry run| *no* | false |
 |endpoint|Use a different s3 endpoint| *no* | s3.amazonaws.com |
 

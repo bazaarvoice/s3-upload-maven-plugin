@@ -3,7 +3,7 @@ package com.bazaarvoice.maven.plugins.s3.upload;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -36,6 +36,10 @@ public class S3UploadMojo extends AbstractMojo
   /** Secret key for S3. */
   @Parameter(property = "s3-upload.secretKey")
   private String secretKey;
+
+  /** Session token for s3. This is used for temporary credentials. */
+  @Parameter(property = "s3-upload.sessionToken")
+  private String sessionToken;
 
   /**
    *  Execute all steps up except the upload to the S3.
@@ -75,7 +79,7 @@ public class S3UploadMojo extends AbstractMojo
     if (profileName != null) {
       s3 = getS3Client(profileName);
     } else {
-      s3 = getS3Client(accessKey, secretKey);
+      s3 = getS3Client(accessKey, secretKey, sessionToken);
     }
 
     if (endpoint != null) {
@@ -102,12 +106,19 @@ public class S3UploadMojo extends AbstractMojo
             source, bucketName, destination));
   }
 
-  private static AmazonS3 getS3Client(String accessKey, String secretKey)
+  private static AmazonS3 getS3Client(String accessKey, String secretKey, String sessionToken)
   {
     AWSCredentialsProvider provider;
     if (accessKey != null && secretKey != null) {
-      AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
-      provider = new StaticCredentialsProvider(credentials);
+      if (sessionToken != null) {
+        // Use the provided session token
+        AWSCredentials credentials = new BasicSessionCredentials(accessKey, secretKey, sessionToken);
+        provider = new StaticCredentialsProvider(credentials);
+      } else {
+        // Use basic credentials without a session token
+        AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
+        provider = new StaticCredentialsProvider(credentials);
+      }
     } else {
       provider = new SSOCompatibleCredentialsProvider();
     }
