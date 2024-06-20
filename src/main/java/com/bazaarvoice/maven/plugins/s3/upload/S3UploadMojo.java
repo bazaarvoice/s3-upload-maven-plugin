@@ -57,7 +57,7 @@ public class S3UploadMojo extends AbstractMojo
   private String bucketName;
 
   /** The file/folder (in the bucket) to create. */
-  @Parameter(property = "s3-upload.destination", required = true)
+  @Parameter(property = "s3-upload.destination")
   private String destination;
 
   /** Force override of endpoint for S3 regions such as EU. */
@@ -91,8 +91,13 @@ public class S3UploadMojo extends AbstractMojo
     }
 
     if (doNotUpload) {
-      getLog().info(String.format("File %s would have be uploaded to s3://%s/%s (dry run)",
-              source, bucketName, destination));
+        if (destination == null) {
+            getLog().info(String.format("File %s would have be uploaded to s3://%s (dry run)",
+              source, bucketName));
+        } else {
+            getLog().info(String.format("File %s would have be uploaded to s3://%s/%s (dry run)",
+                    source, bucketName, destination));
+        }
 
       return;
     }
@@ -102,8 +107,14 @@ public class S3UploadMojo extends AbstractMojo
       throw new MojoExecutionException("Unable to upload file to S3.");
     }
 
-    getLog().info(String.format("File %s uploaded to s3://%s/%s",
-            source, bucketName, destination));
+    if (destination == null) {
+        getLog().info(String.format("File %s uploaded to s3://%s",
+                source, bucketName));
+    } else {
+        getLog().info(String.format("File %s uploaded to s3://%s/%s",
+                source, bucketName, destination));
+    }
+
   }
 
   private static AmazonS3 getS3Client(String accessKey, String secretKey, String sessionToken)
