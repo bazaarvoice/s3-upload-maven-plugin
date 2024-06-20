@@ -68,6 +68,10 @@ public class S3UploadMojo extends AbstractMojo
   @Parameter(property = "s3-upload.recursive", defaultValue = "false")
   private boolean recursive;
 
+  /** Enable server-side AES-256 encryption */
+  @Parameter(property = "s3-upload.enableSSE", defaultValue = "false")
+  private boolean enableSSE;
+
   @Override
   public void execute() throws MojoExecutionException
   {
@@ -136,8 +140,14 @@ public class S3UploadMojo extends AbstractMojo
 
     Transfer transfer;
     if (sourceFile.isFile()) {
-      transfer = mgr.upload(new PutObjectRequest(bucketName, destination, sourceFile)
-              .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl));
+      PutObjectRequest putRequest = new PutObjectRequest(bucketName, destination, sourceFile)
+    		  .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
+      if (enableSSE) {
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+        putRequest.setMetadata(objectMetadata);
+      }
+      transfer = mgr.upload(putRequest);
     } else if (sourceFile.isDirectory()) {
       transfer = mgr.uploadDirectory(bucketName, destination, sourceFile, recursive,
               new ObjectMetadataProvider() {
@@ -147,6 +157,9 @@ public class S3UploadMojo extends AbstractMojo
                    * This is a terrible hack, but the SDK as of 1.10.69 does not allow setting ACLs
                    * for directory uploads otherwise.
                    */
+                  if (enableSSE) {
+                	  objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+                  }
                   objectMetadata.setHeader(Headers.S3_CANNED_ACL, CannedAccessControlList.BucketOwnerFullControl);
                 }
               });
